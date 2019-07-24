@@ -51,13 +51,13 @@ if __name__ == '__main__':
     dataiter = iter(testloader)
     images, labels = dataiter.next()
 
-    '''
+
     # show images
     imshow(torchvision.utils.make_grid(images))
     print(labels)
     print(' '.join('%5s' % classes[labels[j]] for j in range(15)))
 
-    '''
+
     '''
     class Net(nn.Module):
         def __init__(self):
@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
     device = torch.device("cuda")
 
-    model = torchvision.models.resnet101()
+    model = torchvision.models.resnet50()
     model.fc = torch.nn.Sequential(
         torch.nn.Linear(
             in_features=2048,
@@ -109,7 +109,7 @@ if __name__ == '__main__':
         ),
         torch.nn.Sigmoid()
     )
-    model.load_state_dict(torch.load("model/resnet101.pth"))
+    model.load_state_dict(torch.load("model/resnet50.pth"))
     model.eval()
     model = model.cuda(device=device)
 
@@ -118,7 +118,7 @@ if __name__ == '__main__':
     _, predicted = torch.max(outputs, 1)
 
     print('Predicted: ', ' '.join('%5s' % classes[predicted[j]]
-                                  for j in range(5)))
+                                  for j in range(15)))
 
     correct = 0
     total = 0

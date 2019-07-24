@@ -25,10 +25,6 @@ if __name__ == '__main__':
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True, num_workers=2)
 
-    # =-========================22222222==========================================
-    testset = ImageFolder(root='D:\\test', transform=transform)
-
-    testloader = torch.utils.data.DataLoader(testset, batch_size=32, shuffle=True, num_workers=2)
 
     classes = ('cocacola_tin', 'icetea_lemon', 'icetea_peach'
                    , 'nescafe_tin', 'nesfit', 'pepsi', 'pepsi_max'

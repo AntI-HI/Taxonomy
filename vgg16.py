@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
     model = model.cuda(device=device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.SGD(model.parameters(), lr=0.00001, momentum=0.9)
 
     for epoch in range(15):  # loop over the dataset multiple times
         print(epoch)

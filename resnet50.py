@@ -25,12 +25,12 @@ if __name__ == '__main__':
 
     trainset = ImageFolder(root='D:\\train', transform=transform)
 
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True, num_workers=2)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True, num_workers=2)
 
     # =-========================22222222==========================================
     testset = ImageFolder(root='D:\\test', transform=transform)
 
-    testloader = torch.utils.data.DataLoader(testset, batch_size=64, shuffle=True, num_workers=2)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=32, shuffle=True, num_workers=2)
 
     classes = ('cocacola_tin', 'icetea_lemon', 'icetea_peach'\
                     ,'nescafe_tin', 'nesfit', 'pepsi', 'pepsi_max'\
@@ -95,13 +95,14 @@ if __name__ == '__main__':
             running_loss += loss.item()
             total_correct += get_num_correct(outputs, labels)
 
+
             writer.add_scalar('Loss', running_loss, epoch)
             writer.add_scalar('Number Correct', total_correct, epoch)
             writer.add_scalar('Accuracy', total_correct / len(trainset), epoch)
-
+            '''
             for name, param in model.named_parameters():
-                writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch)
-
+                writer.add_histogram(name, param.clone(), epoch)
+            '''
             print('[%d, %5d] loss: %.3f' %
                   (epoch + 1, i + 1, running_loss))
             running_loss = 0.0
