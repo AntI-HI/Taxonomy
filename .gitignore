@@ -1,0 +1,6 @@
+*.log
+/data
+/model
+/runs
+/venv
+/.idea
