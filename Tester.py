@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
     device = torch.device("cuda")
 
-    model = torchvision.models.vgg16()
+    model = torchvision.models.resnet101()
     model.fc = torch.nn.Sequential(
         torch.nn.Linear(
             in_features=2048,
@@ -109,7 +109,7 @@ if __name__ == '__main__':
         ),
         torch.nn.Sigmoid()
     )
-    model.load_state_dict(torch.load("model/vgg16.pth"))
+    model.load_state_dict(torch.load("model/resnet101.pth"))
     model.eval()
     model = model.cuda(device=device)
 
