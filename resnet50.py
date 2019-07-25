@@ -95,7 +95,6 @@ if __name__ == '__main__':
             running_loss += loss.item()
             total_correct += get_num_correct(outputs, labels)
 
-
             writer.add_scalar('Loss', running_loss, epoch)
             writer.add_scalar('Number Correct', total_correct, epoch)
             writer.add_scalar('Accuracy', total_correct / len(trainset), epoch)
