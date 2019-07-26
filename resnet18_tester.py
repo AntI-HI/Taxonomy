@@ -17,12 +17,11 @@ warnings.filterwarnings("ignore")
 if __name__ == '__main__':
 
     transform = transforms.Compose([
-        transforms.Resize([128, 128]),
+        transforms.Resize([256, 256]),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
-    # =-========================22222222==========================================
     testset = ImageFolder(root='D:\\test', transform=transform)
 
     testloader = torch.utils.data.DataLoader(testset, batch_size=32, shuffle=True, num_workers=2)
@@ -101,15 +100,15 @@ if __name__ == '__main__':
 
     device = torch.device("cuda")
 
-    model = torchvision.models.resnet101()
+    model = torchvision.models.resnet18()
     model.fc = torch.nn.Sequential(
         torch.nn.Linear(
-            in_features=2048,
+            in_features=512,
             out_features=15
         ),
         torch.nn.Sigmoid()
     )
-    model.load_state_dict(torch.load("model/resnet101.pth"))
+    model.load_state_dict(torch.load("model/resnet18.pth"))
     model.eval()
     model = model.cuda(device=device)
 

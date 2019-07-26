@@ -12,7 +12,6 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms import ToTensor
 # Ignore warnings
 import warnings
-os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 warnings.filterwarnings("ignore")
 
 if __name__ == '__main__':
@@ -27,11 +26,10 @@ if __name__ == '__main__':
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True, num_workers=2)
 
-
-    classes = ('cocacola_tin', 'icetea_lemon', 'icetea_peach'\
-                    ,'nescafe_tin', 'nesfit', 'pepsi', 'pepsi_max'\
-                   ,'pepsi_twist', 'redbull', 'redbull_sugar_free'\
-                   , 'sprite', 'tadelle', 'tropicana_apricot'\
+    classes = ('cocacola_tin', 'icetea_lemon', 'icetea_peach'
+                   , 'nescafe_tin', 'nesfit', 'pepsi', 'pepsi_max'
+                   , 'pepsi_twist', 'redbull', 'redbull_sugar_free'
+                   , 'sprite', 'tadelle', 'tropicana_apricot'
                    , 'tropicana_mixed', 'zuber')
 
     def get_num_correct(preds, labels):
@@ -42,10 +40,10 @@ if __name__ == '__main__':
 
     torch.cuda.current_device()
 
-    model = torchvision.models.resnet50()
+    model = torchvision.models.resnet18()
     model.fc = torch.nn.Sequential(
         torch.nn.Linear(
-            in_features=2048,
+            in_features=512,
             out_features=15
         ),
         torch.nn.Sigmoid()
@@ -69,8 +67,7 @@ if __name__ == '__main__':
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
 
-    for epoch in range(25):  # loop over the dataset multiple times
-
+    for epoch in range(20):  # loop over the dataset multiple times
         total_correct = 0
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
@@ -92,17 +89,15 @@ if __name__ == '__main__':
             total_correct += get_num_correct(outputs, labels)
 
             writer.add_scalar('Loss', running_loss, epoch)
-            writer.add_scalar('Number Correct', total_correct, epoch)
-            writer.add_scalar('Accuracy', total_correct / len(trainset), epoch)
-            '''
-            for name, param in model.named_parameters():
-                writer.add_histogram(name, param.clone(), epoch)
-            '''
+            if i % 5 == 0:
+                writer.add_scalar('Number Correct', total_correct, epoch)
+                writer.add_scalar('Accuracy', total_correct / len(trainset), epoch)
             print('[%d, %5d] loss: %.3f' %
                   (epoch + 1, i + 1, running_loss))
             running_loss = 0.0
 
-    writer.close()
-    print('Finished Training')
+        writer.close()
+        print('Finished Training')
 
-    torch.save(model.state_dict(), "model/resnet50.pth")
+    torch.save(model.state_dict(), "model/resnet18.pth")
+

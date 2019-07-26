@@ -96,8 +96,8 @@ if __name__ == '__main__':
                   (epoch + 1, i + 1, running_loss))
             running_loss = 0.0
 
-        writer.close()
-        print('Finished Training')
+    writer.close()
+    print('Finished Training')
 
     torch.save(model.state_dict(), "model/resnet101.pth")
 
