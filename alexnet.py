@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     trainset = ImageFolder(root='D:\\train', transform=transform)
 
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True, num_workers=2)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True, num_workers=2)
 
 
     classes = ('cocacola_tin', 'icetea_lemon', 'icetea_peach'
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
-    for epoch in range(15):  # loop over the dataset multiple times
+    for epoch in range(25):  # loop over the dataset multiple times
         total_correct = 0
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
