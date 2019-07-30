@@ -17,7 +17,7 @@ warnings.filterwarnings("ignore")
 if __name__ == '__main__':
 
     transform = transforms.Compose([
-        transforms.Resize([256, 256]),
+        transforms.Resize([230, 230]),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
