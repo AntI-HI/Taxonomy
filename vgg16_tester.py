@@ -1,16 +1,10 @@
 from __future__ import print_function, division
-import os
-import torch
-import pandas as pd
-from skimage import io, transform
-import numpy as np
-import matplotlib.pyplot as plt
-from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms, utils, datasets
-from torchvision.datasets import ImageFolder
-from torchvision.transforms import ToTensor
 # Ignore warnings
 import warnings
+import torch
+from torch.utils.data import Dataset
+from torchvision import transforms
+from torchvision.datasets import ImageFolder
 
 warnings.filterwarnings("ignore")
 
@@ -37,65 +31,41 @@ if __name__ == '__main__':
     import numpy as np
     import torchvision
 
+    def get_num_correct(preds, labels):
+        return preds.argmax(dim=1).eq(labels).sum().item()
 
-    # functions to show an image
 
-    def imshow(img):
-        img = img / 2 + 0.5  # unnormalize
-        npimg = img.numpy()
-        plt.imshow(np.transpose(npimg, (1, 2, 0)))
+    def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
+        import matplotlib.pyplot as plt
+
+        from sklearn.metrics import confusion_matrix
+        import itertools
+        import numpy as np
+        if normalize:
+            cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+            print("Normalized confusion matrix")
+        else:
+            print('Confusion matrix, without normalization')
+
+        print(cm)
+        plt.imshow(cm, interpolation='nearest', cmap=cmap)
+        plt.title(title)
+        plt.colorbar()
+        tick_marks = np.arange(len(classes))
+        plt.xticks(tick_marks, classes, rotation=90)
+        plt.yticks(tick_marks, classes)
+
+        fmt = '.2f' if normalize else 'd'
+        thresh = cm.max() / 2.
+        for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+            plt.text(j, i, format(cm[i, j], fmt), horizontalalignment="center",
+                     color="white" if cm[i, j] > thresh else "black")
+
+        plt.tight_layout()
+        plt.ylabel('True label')
+        plt.xlabel('Predicted label')
         plt.show()
 
-
-    # get some random training images
-    dataiter = iter(testloader)
-    images, labels = dataiter.next()
-
-    # show images
-    imshow(torchvision.utils.make_grid(images))
-    print(labels)
-    print(' '.join('%5s' % classes[labels[j]] for j in range(15)))
-
-    '''
-    class Net(nn.Module):
-        def __init__(self):
-            super(Net, self).__init__()
-
-            # 3 input image channel, 15 output channel, 5x5 square convolution
-            # kernel
-            self.conv1 = nn.Conv2d(3, 15, 5)
-            self.pool = nn.MaxPool2d(2, 2)
-            self.conv2 = nn.Conv2d(15, 16, 5)
-            self.fc1 = nn.Linear(13456, 128)
-            self.fc2 = nn.Linear(128, 84)
-            self.fc3 = nn.Linear(84, 15)
-
-        def forward(self, x):
-            x = self.pool(F.relu(self.conv1(x)))
-            x = self.pool(F.relu(self.conv2(x)))
-            x = x.view(x.size(0), 13456)
-
-            x = F.relu(self.fc1(x))
-            x = F.relu(self.fc2(x))
-            x = self.fc3(x)
-            return x
-
-
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-    net = Net()
-    net.to(device)
-
-    net.load_state_dict(torch.load("model/resnet101.pt"))
-    net.eval()
-
-    outputs = net(images.to(device))
-
-    _, predicted = torch.max(outputs, 1)
-
-    print('Predicted: ', ' '.join('%5s' % classes[predicted[j]]
-                                  for j in range(5)))
-    '''
 
     device = torch.device("cuda")
 
@@ -111,36 +81,28 @@ if __name__ == '__main__':
     model.eval()
     model = model.cuda(device=device)
 
-    outputs = model(images.to(device))
-
-    _, predicted = torch.max(outputs, 1)
-
-    print('Predicted: ', ' '.join('%5s' % classes[predicted[j]]
-                                  for j in range(15)))
-
+    class_correct = list(0. for i in range(15))
+    class_total = list(0. for i in range(15))
     correct = 0
     total = 0
     with torch.no_grad():
+        all_preds = torch.tensor([])
+        targets = torch.tensor([], dtype=torch.long)
         for data in testloader:
             images, labels = data[0].to(device), data[1].to(device)
-            outputs = model(images)
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
 
-    print('Accuracy of the network on test images: %d %%' % (
-            100 * correct / total))
-
-    class_correct = list(0. for i in range(15))
-    class_total = list(0. for i in range(15))
-
-    with torch.no_grad():
-        for data in testloader:
-
-            images, labels = data[0].to(device), data[1].to(device)
+            for i in labels:
+                targets = targets.to(device)
+                targets = torch.cat((targets, torch.tensor([i.item()]).to(device)), dim=0)
 
             outputs = model(images)
             _, predicted = torch.max(outputs, 1)
+            outputs = outputs.to(device)
+            all_preds = all_preds.to(device)
+            all_preds = torch.cat(
+                (all_preds, outputs)
+                , dim=0
+            )
             c = (predicted == labels).squeeze()
             for i in range(15):
                 label = labels[i]
@@ -148,6 +110,63 @@ if __name__ == '__main__':
                 class_correct[label] += c[i].item()
                 class_total[label] += 1
 
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+    print('Accuracy of the network on test images: %d %%' % (
+            100 * correct / total))
     for i in range(15):
         print('Accuracy of %5s : %2d %%' % (
             classes[i], 100 * class_correct[i] / class_total[i]))
+
+    stacked = torch.stack(
+        (
+            targets
+            , all_preds.argmax(dim=1)
+        )
+        , dim=1
+    )
+
+    cmt = torch.zeros(15, 15, dtype=torch.int32)
+
+    for p in stacked:
+        tl, pl = p.tolist()
+        cmt[tl, pl] = cmt[tl, pl] + 1
+
+    import matplotlib.pyplot as plt
+    from sklearn.metrics import confusion_matrix
+    import itertools
+    import numpy as np
+
+    cm = confusion_matrix(targets.cpu(), all_preds.argmax(dim=1).cpu())
+    plot_confusion_matrix(cm, classes)
+
+    FP = cm.sum(axis=0) - np.diag(cm)
+    FN = cm.sum(axis=1) - np.diag(cm)
+    TP = np.diag(cm)
+    TN = cm.sum() - (FP + FN + TP)
+
+    # Sensitivity, hit rate, recall, or true positive rate
+    TPR = TP / (TP + FN)
+    # Specificity or true negative rate
+    TNR = TN / (TN + FP)
+    # Precision or positive predictive value
+    PPV = TP / (TP + FP)
+    # Negative predictive value
+    NPV = TN / (TN + FN)
+    # Fall out or false positive rate
+    FPR = FP / (FP + TN)
+    # False negative rate
+    FNR = FN / (TP + FN)
+    # False discovery rate
+    FDR = FP / (TP + FP)
+
+    # Overall accuracy
+    ACC = (TP + TN) / (TP + FP + FN + TN)
+
+    print('\nTRUE POSITIVES: ',TP)
+    print('TRUE NEGATIVES: ',TN)
+    print('FALSE POSITIVES: ',FP)
+    print('FALSE NEGATIVES: ',FN)
+    print('RECALL: ',TPR)
+    print('ACC: ',ACC)
